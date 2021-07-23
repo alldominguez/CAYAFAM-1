@@ -17,7 +17,7 @@ To charge the database from SPSS we use the function read_sav from the library(h
 
 ```{r}
 library(haven)
-db_cayafam1 <- read_sav("~/Desktop/Artículos Sandra Cortes/CAYAFAM/CAYAFAM 1/Base ESTUDIO1.sav")
+db_cayafam1 <- read_sav("~/Desktop/Github_Proyectos/CAYAFAM-1/Base ESTUDIO1.sav")
 ```
 
 We start with an exploratory data analysis. 
@@ -33,3 +33,15 @@ skimr::skim(CAYAFAM_ENV) #realizamos un resumen estadistico de las variables amb
 summary(CAYAFAM_ENV)
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
