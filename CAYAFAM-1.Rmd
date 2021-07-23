@@ -1,0 +1,35 @@
+---
+title: ""
+author: "Sandra Cortes, Alan Domínguez"
+date: "7/23/2021"
+output: html_document
+---
+
+## CAYAFAM 1
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(skimr)
+library(haven)
+```
+
+To charge the database from SPSS we use the function read_sav from the library(haven).
+
+```{r}
+library(haven)
+db_cayafam1 <- read_sav("~/Desktop/Artículos Sandra Cortes/CAYAFAM/CAYAFAM 1/Base ESTUDIO1.sav")
+```
+
+We start with an exploratory data analysis. 
+
+```{r pressure, echo=FALSE}
+#primero revisamos el sexo de los participantes del estudio 
+str(db_cayafam1$Sexo) #la variable se encuentra como character
+db_cayafam1 %>% dplyr::count(forcats::as_factor(Sexo)) #usamos forcats::as_factor para transformar la variable
+
+#luego revisamos las variables ambientales 
+CAYAFAM_ENV <- db_cayafam2 %>% dplyr::select(Periodo_exposicion:O3) #seleccionamos algunas variables de interes 
+skimr::skim(CAYAFAM_ENV) #realizamos un resumen estadistico de las variables ambientales y de exposición
+summary(CAYAFAM_ENV)
+
+```
