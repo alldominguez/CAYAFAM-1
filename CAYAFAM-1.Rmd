@@ -25,12 +25,23 @@ We start with an exploratory data analysis.
 ```{r pressure, echo=FALSE}
 #primero revisamos el sexo de los participantes del estudio 
 str(db_cayafam1$Sexo) #la variable se encuentra como character
-db_cayafam1 %>% dplyr::count(forcats::as_factor(Sexo)) #usamos forcats::as_factor para transformar la variable
+cayafam_EV1 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Primera Evaluación") %>% #filtramos para la primera evaluación 
+  dplyr::count(forcats::as_factor(Sexo)) #usamos forcats::as_factor para transformar la variable, la base contiene 68 mujeres y 24 hombres con mediciones repetidas 
 
 #luego revisamos las variables ambientales 
-CAYAFAM_ENV <- db_cayafam2 %>% dplyr::select(Periodo_exposicion:O3) #seleccionamos algunas variables de interes 
+CAYAFAM_ENV <- db_cayafam1 %>% dplyr::select(Periodo_exposicion:O3) #seleccionamos algunas variables de interes 
 skimr::skim(CAYAFAM_ENV) #realizamos un resumen estadistico de las variables ambientales y de exposición
 summary(CAYAFAM_ENV)
+
+###Hacemos un subset por evaluaciones### 
+#Evaluación 1 - Medición Invierno
+cayafam_EV1 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Primera Evaluación") # cayafam_EV1 <- subset(db_cayafam1, `EvaluaciónN°` = "Primera Evaluación")
+
+#Evaluación 2 - Medición Verano 
+cayafam_EV2 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Segunda Evaluación") # cayafam_EV2 <- subset(db_cayafam2, `EvaluaciónN°` = "Segunda Evaluación")
+
+
+
 
 ```
 
