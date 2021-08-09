@@ -7,41 +7,327 @@ output: html_document
 
 ## CAYAFAM 1
 
-```{r setup, include=FALSE}
+The objective of this study was to analyze the association between air pollution and cardiorespiratory variables, considering the effect of physical condition, in OA that live in areas with high levels of air pollution in the Metropolitan Region of Chile.
+
+```{r Libraries, include=FALSE}
 library(tidyverse)
 library(skimr)
 library(haven)
+library(readxl)
+library(patchwork)
+library(gmodels)
+library(summarytools)
+library(ggpubr)
+
 ```
 
-To charge the database from SPSS we use the function read_sav from the library(haven).
+To charge the database from SPSS we use the function read_sav from the library(haven) for the initial database, and the function read_excel from the library(readxl).
+
+```{r Loading Database, echo = FALSE}
+db_cayafam1 <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1.xlsx") #base de datos con 54 variables (Descriptiva tabla 1)
+db_cayafam1_vf <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_vf.xlsx") 
+db_cayafam <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_final.xlsx") #con esta la mayoria 
+```
+
+We relabel some variables Sex and the period of exposure (Evento) for subset the data.
+
+```{r Cleaning Database}
+# Lo mismo de arriba pero para la base de datos completa 
+#Sexo ("Hombre","Mujer")
+db_cayafam <- db_cayafam %>%            
+  dplyr::mutate(Sexo = factor(Sexo, levels = c(1,2),  #cambiamos los niveles    
+                       labels = c("Hombre", "Mujer"))) %>%  
+  dplyr::rename(Sexo = Sexo)
+
+levels(db_cayafam$Sexo) #revisamos los nuevos niveles 
+
+#Periodo de exposición  (evento) 
+db_cayafam <- db_cayafam %>%            
+  dplyr::mutate(Evento = factor(Evento, levels = c("medicion_invierno_arm_1","medicion_verano_arm_1"),  #cambiamos los niveles    
+                                        labels = c("Invierno", "Verano"))) %>% 
+  dplyr::rename(Evento = Evento)
+
+levels(db_cayafam$Evento) #revisamos los nuevos niveles 
+```
+
+
+We made subset from our initial database (db_cayafam1)
+
+```{r Subset, echo = FALSE}
+#We do a subset for sex, period of exposure and for some environmental variables 
+db_cayafam_summer <- subset(db_cayafam, Evento == "Verano") #contiene solo a hombres (N = 24) / ambos periodos (N = 48)
+db_cayafam_winter <- subset(db_cayafam, Evento == "Invierno") #contiene solo a mujeres (N = 68) / ambos periodos (N = 136)
+db_cayafam_env <- db_cayafam %>% dplyr::select(Evento, PM10_max:H_p75) #variables ambientales de interes
+```
+
+### Descriptive statistics
+
+-   Table 1. Demographic and health characteristics of older adults.
+
+```{r Table 1 Health Characteristics OA by Sex }
+db_cayafam %>% distinct(Folio, Sexo) %>% 
+               summarytools::freq(Sexo, report.nas = FALSE)
+
+#Summary Age
+db_cayafam_winter %>%  summarise(mean_Edad = round(mean(Edad), digits = 1), 
+                                  sd_Edad = round(sd(Edad), digits = 1))
+
+#Summary grouped by sex for Age
+db_cayafam_winter %>% group_by(Sexo) %>% 
+                      summarise(mean_Edad = round(mean(Edad), digits = 1), 
+                                 sd_Edad = round(sd(Edad), digits = 1))
+
+t.test(Edad ~ Sexo, data = db_cayafam_winter) #T.test Age - Sexo
+
+
+#Summary Weight
+db_cayafam_winter %>%  summarise(mean_Peso = round(mean(Peso, na.rm = TRUE),  digits = 1), 
+                          sd_Peso = round(sd(Peso, na.rm = TRUE), digits = 1))
+
+#Summary grouped by sex for Weight
+db_cayafam_winter %>% group_by(Sexo) %>%  
+                       summarise(mean_Weight = round(mean(Peso , na.rm = TRUE), digits = 1), 
+                                 sd_Weight = round(sd(Peso, na.rm = TRUE), digits = 1))
+
+
+t.test(Peso ~ Sexo, data = db_cayafam1_winter) #T.test Weight - Sex
+
+#Summary Height 
+db_cayafam1_winter %>%  summarise(mean_Height = round(mean(Talla, na.rm = TRUE), digits = 1), 
+                                  sd_Height = round(sd(Talla, na.rm = TRUE), digits = 1))
+
+#Summary grouped by sex for Height
+db_cayafam1_winter %>% group_by(Sexo) %>%  
+                       summarise(mean_Height = round(mean(Talla , na.rm = TRUE), digits = 1), 
+                                 sd_Height = round(sd(Talla, na.rm = TRUE), digits = 1))
+
+t.test(Talla ~ Sexo, data = db_cayafam1_winter) #T.test Height - Sex 
+
+
+#Summary Obesity 
+gmodels::CrossTable(db_cayafam1_winter$`Obsidad(1/0)`, db_cayafam1_winter$Sexo, chisq = TRUE)
+
+
+#Summary Waist 
+db_cayafam1 %>%  summarise(mean_Waist = round(mean(Perimetro_cintura , na.rm = TRUE), digits = 1), 
+                                  sd_Waist = round(sd(Perimetro_cintura, na.rm = TRUE), digits = 1))
+
+#Summary grouped by sex for Waist
+db_cayafam1_winter %>% group_by(Sexo) %>%  
+                       summarise(mean_Waist = round(mean(Perimetro_cintura , na.rm = TRUE), digits = 1), 
+                                 sd_Waist = round(sd(Perimetro_cintura, na.rm = TRUE), digits = 1))
+
+t.test(Perimetro_cintura ~ Sexo, data = db_cayafam1_winter) #T.test Waist - Sex
+
+#Summary Smoking
+gmodels::CrossTable(db_cayafam1_winter$`Fuma(si/no)`, db_cayafam1_winter$Sexo, chisq = TRUE) #eliminar luego
+gmodels::CrossTable(db_cayafam_winter$Smoking, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Diabetes
+gmodels::CrossTable(db_cayafam_winter$Diabetes, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Hypertension
+gmodels::CrossTable(db_cayafam_winter$HTA, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Respiratory diseases
+gmodels::CrossTable(db_cayafam_winter$EnfResp, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Cardiovascular diseases
+gmodels::CrossTable(db_cayafam$EnfResp, db_cayafam$Sexo, chisq = TRUE)#Periodo de alta exposición (invierno)
+
+gmodels::CrossTable(db_cayafam1_summer$Enf_cardio, db_cayafam1_summer$Sexo, chisq = TRUE) #Periodo de baja exposcición (verano)
+
+#Summary Multi-morbidity diseases
+gmodels::CrossTable(db_cayafam_winter$Multimorbility, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Respiratory query last months 
+gmodels::CrossTable(db_cayafam$consultas_respiratorias, db_cayafam$Sexo, chisq = TRUE)
+
+#Summary Cardiovascular query last months 
+gmodels::CrossTable(db_cayafam_winter$consultas_cardiacas, db_cayafam_winter$Sexo, chisq = TRUE)
+
+#Summary Hosptilization last months  (HospRespINV_ca2_14)
+gmodels::CrossTable(db_cayafam_winter$HospRespINV_ca2_14, db_cayafam_winter$Sexo, chisq = TRUE)
+```
+
+We continue analizing de health characteristics and cardiorespiratory variables.
+
+-   Table 2. Health characteristic and cardiorespiratory variables by High and Low Exposure.
+
+```{r Table 2. Health Characteristic and Cardiorespiratory OA by Period of Exposure, message=FALSE, warning=FALSE, include=FALSE}
+
+### Blood pressure ###
+
+##Systolic blood pressure
+db_cayafam %>%  
+  dplyr::summarize(mean_PAS = round(mean(PAS_basal, na.rm = TRUE), digits = 1),  #Total period 
+                              sd_PAS = round(sd(PAS_basal, na.rm = TRUE), digits = 1))
+
+
+db_cayafam %>% filter(Evento == "medicion_invierno_arm_1") %>%  #High Exposure
+  dplyr::summarize(mean_PAS = round(mean(PAS_basal, na.rm = TRUE), digits = 1), 
+                              sd_PAS = round(sd(PAS_basal, na.rm = TRUE), digits = 1))
+
+
+db_cayafam %>% filter(Evento == "medicion_verano_arm_1") %>%  #Low Exposure
+  dplyr::summarize(mean_PAS = round(mean(PAS_basal, na.rm = TRUE), digits = 1), 
+                              sd_PAS = round(sd(PAS_basal, na.rm = TRUE), digits = 1))
+
+t.test(PAS_basal ~ Evento, data = db_cayafam) #T.test PAS_basal - Evento
+
+#Diastolic blood pressure 
+db_cayafam %>%  
+  dplyr::summarize(mean_PAS = round(mean(PAD_basal, na.rm = TRUE), digits = 1),  #Total period 
+                              sd_PAS = round(sd(PAD_basal, na.rm = TRUE), digits = 1))
+
+
+db_cayafam %>% filter(Evento == "medicion_invierno_arm_1") %>%  #High Exposure
+  dplyr::summarize(mean_PAS = round(mean(PAD_basal, na.rm = TRUE), digits = 1), 
+                              sd_PAS = round(sd(PAD_basal, na.rm = TRUE), digits = 1))
+
+
+db_cayafam %>% filter(Evento == "medicion_verano_arm_1") %>%  #Low Exposure
+  dplyr::summarize(mean_PAD = round(mean(PAD_basal, na.rm = TRUE), digits = 1), 
+                              sd_PAD = round(sd(PAD_basal, na.rm = TRUE), digits = 1))
+
+t.test(PAD_basal ~ Evento, data = db_cayafam) #T.test PAD_basal - Evento
+
+### Respiratory function ###
+db_cayafam %>%  
+  dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),  #Total period 
+                              sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
+
+db_cayafam1 %>% filter(Evento == "Invierno") %>%  #High Exposure
+  dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),   
+                              sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
+
+db_cayafam1 %>% filter(Evento == "Verano") %>%  #Low Exposure
+  dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),   
+                              sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
+
+t.test(PEF_max ~ Evento, data = db_cayafam1) #T.test PEF_max - Evento
+
+### Respiratory symptons ###
+gmodels::CrossTable(db_cayafam$SintResp, db_cayafam$Evento, chisq = TRUE)
+
+# Tos sin resfrio
+gmodels::CrossTable(db_cayafam$tos_sin_resfrio, db_cayafam$Evento, chisq = TRUE )
+
+# Flemas sin resfrio
+gmodels::CrossTable(db_cayafam$flemas_sin_resfrio, db_cayafam$Evento, chisq = TRUE )
+
+# Sibilancias
+gmodels::CrossTable(db_cayafam$sibilancias, db_cayafam$Evento, chisq = TRUE )
+
+### Physical Activity GPAQ ###
+#Moderate intensity  (TOTAL_MIN_WEEK)
+db_cayafam %>%  
+  dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),  #Total period 
+                              sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
+
+db_cayafam %>% filter(Evento == "medicion_invierno_arm_1") %>%  #High Exposure
+  dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),   
+                              sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
+
+db_cayafam %>% filter(Evento == "medicion_verano_arm_1") %>%  #Low Exposure
+  dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),   
+                              sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
+
+t.test(TOTAL_MIN_WEEK ~ Evento, data = db_cayafam) #T.test TOTAL_MIN_WEEK - Evento
+
+# >= 150 minutos of moderate intensity (Cumple_150minweek)
+gmodels::CrossTable(db_cayafam$Cumple_150minweek, db_cayafam$Evento, chisq = TRUE )
+
+# Level Physical Fitness (Pcondition)
+gmodels::CrossTable(db_cayafam$Pcondition, db_cayafam$Evento, chisq = TRUE )
+
+```
+
+Then we make summary statistics for environmental variables for the both periods of exposure (High and Low)
+
+```{r Table 3. Air pollution and environmental variables by Period of Exposure, }
+
+
+
+
+```
+
+### Multivariate Analysis
+
+```{r Respiratory Symptoms}
+# Algunas librerias 
+library(MASS)
+full_model <- 
+step_model <- MASS::stepAIC()
+
+#Modelos para sintomas respiratorios 
+m1_RS <- lm(formula = SintResp ~ PM10_p75, data = db_cayafam) 
+summary(m1_RS)
+
+m2_RS <- lm(formula = SintResp ~ PM10_p75 + Evento_b, data = db_cayafam) 
+summary(m2_RS)
+
+m3_RS <- lm(formula = SintResp ~ PM10_p75 + Fuma, data = db_cayafam) 
+summary(m3_RS)
+
+modelo_prueba <- lm(formula = SintResp ~  PM2.5_max + factor(Sexo) + factor(Fuma) + Edad, data = db_cayafam)
+summary(modelo_prueba)
+
+
+```
+
+
+
+
+```{r Systolic Blood Pressure}
+
+```
+
+
+
+
+
+
+
+```{Diastolic Blood Pressure}
+
+```
+
+
+
+
+
+
+
+-   ideas de visualización
+
+```{r }
+
+# ejemplo grafico Env Factors 
+pm10 <- ggboxplot(db_cayafam1, x = "Evento", y = "PM10_max", 
+          color = "Evento", palette = c("#00AFBB", "#E7B800"),
+          order = c("Invierno", "Verano"),
+          ylab = "PM10", xlab = "") 
+
+pm25 <- ggboxplot(db_cayafam1, x = "Evento", y = "PM2.5_max", 
+          color = "Evento", palette = c("#00AFBB", "#E7B800"),
+          order = c("Invierno", "Verano"),
+          ylab = "PM2.5", xlab = "Periodo de Exposición") 
+
+no2 <- ggboxplot(db_cayafam1, x = "Evento", y = "NO2_max", 
+          color = "Evento", palette = c("#00AFBB", "#E7B800"),
+          order = c("Invierno", "Verano"),
+          ylab = "NO2", xlab = "") 
+
+
+pm10 + pm25 + no2
+
+
+
+
+```
 
 ```{r}
-library(haven)
-db_cayafam1 <- read_sav("~/Desktop/Github_Proyectos/CAYAFAM-1/Base ESTUDIO1.sav")
-```
-
-We start with an exploratory data analysis. 
-
-```{r pressure, echo=FALSE}
-#primero revisamos el sexo de los participantes del estudio 
-str(db_cayafam1$Sexo) #la variable se encuentra como character
-cayafam_EV1 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Primera Evaluación") %>% #filtramos para la primera evaluación 
-  dplyr::count(forcats::as_factor(Sexo)) #usamos forcats::as_factor para transformar la variable, la base contiene 68 mujeres y 24 hombres con mediciones repetidas 
-
-#luego revisamos las variables ambientales 
-CAYAFAM_ENV <- db_cayafam1 %>% dplyr::select(Periodo_exposicion:O3) #seleccionamos algunas variables de interes 
-skimr::skim(CAYAFAM_ENV) #realizamos un resumen estadistico de las variables ambientales y de exposición
-summary(CAYAFAM_ENV)
-
-###Hacemos un subset por evaluaciones### 
-#Evaluación 1 - Medición Invierno
-cayafam_EV1 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Primera Evaluación") # cayafam_EV1 <- subset(db_cayafam1, `EvaluaciónN°` = "Primera Evaluación")
-
-#Evaluación 2 - Medición Verano 
-cayafam_EV2 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Segunda Evaluación") # cayafam_EV2 <- subset(db_cayafam2, `EvaluaciónN°` = "Segunda Evaluación")
-
-
-
 
 ```
 
@@ -49,10 +335,4 @@ cayafam_EV2 <- db_cayafam1 %>% dplyr::filter(`EvaluaciónN°` == "Segunda Evalua
 
 
 
-
-
-
-
-
-
-
+```
