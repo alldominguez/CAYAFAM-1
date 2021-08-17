@@ -153,7 +153,7 @@ gmodels::CrossTable(db_cayafam_winter$HospRespINV_ca2_14, db_cayafam_winter$Sexo
 
 We continue analizing de health characteristics and cardiorespiratory variables.
 
--   Table 2. Health characteristic and cardiorespiratory variables by High and Low Exposure.
+-   Table 2. Health characteristic and cardiorespiratory variables by High and Low Exposure. 
 
 ```{r Table 2. Health Characteristic and Cardiorespiratory OA by Period of Exposure, message=FALSE, warning=FALSE, include=FALSE}
 
