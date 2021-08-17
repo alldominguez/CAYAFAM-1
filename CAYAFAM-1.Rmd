@@ -18,6 +18,8 @@ library(patchwork)
 library(gmodels)
 library(summarytools)
 library(ggpubr)
+library(ggthemes)
+library(DataExplorer)
 
 ```
 
@@ -49,7 +51,6 @@ db_cayafam <- db_cayafam %>%
 
 levels(db_cayafam$Evento) #revisamos los nuevos niveles 
 ```
-
 
 We made subset from our initial database (db_cayafam1)
 
@@ -245,6 +246,8 @@ gmodels::CrossTable(db_cayafam$Pcondition, db_cayafam$Evento, chisq = TRUE )
 
 Then we make summary statistics for environmental variables for the both periods of exposure (High and Low)
 
+-   Table 3. Air pollution and environmental variables by Period of Exposure
+
 ```{r Table 3. Air pollution and environmental variables by Period of Exposure, }
 
 
@@ -254,56 +257,144 @@ Then we make summary statistics for environmental variables for the both periods
 
 ### Multivariate Analysis
 
+We create models to explain the variability of the different outcomes
+
+-   Respiratory Symptoms model
+
+    For the respiratory symptoms models we use logistic regression due to the outcome variable is binary, and it's categorize as a presence or absence of respiratory illness.
+
 ```{r Respiratory Symptoms}
 # Algunas librerias 
 library(MASS)
-full_model <- 
-step_model <- MASS::stepAIC()
 
-#Modelos para sintomas respiratorios 
-m1_RS <- lm(formula = SintResp ~ PM10_p75, data = db_cayafam) 
-summary(m1_RS)
+model1_EnfResp <- glm(formula = SintResp ~ factor(Evento)  + Edad + factor(Sexo) + factor(Pcondition) + factor(Multimorbility) + factor(Smoking) + factor(Obesidad),  data = db_cayafam, family = binomial) 
 
-m2_RS <- lm(formula = SintResp ~ PM10_p75 + Evento_b, data = db_cayafam) 
-summary(m2_RS)
+summary(model1_EnfResp)
 
-m3_RS <- lm(formula = SintResp ~ PM10_p75 + Fuma, data = db_cayafam) 
-summary(m3_RS)
+# exponenciamos los resultados para obtener nuestros OR
+exp(cbind(OR = coef(model1_EnfResp), confint(model1_EnfResp)))
 
-modelo_prueba <- lm(formula = SintResp ~  PM2.5_max + factor(Sexo) + factor(Fuma) + Edad, data = db_cayafam)
-summary(modelo_prueba)
+
+
+
 
 
 ```
-
-
-
 
 ```{r Systolic Blood Pressure}
 
+#Dejamos como categoria de referencia la variable de baja exposición (Verano).
+db_cayafam$Evento <- relevel(db_cayafam$Evento, ref = "Verano")
+
+#modelo ajustado
+model1_PAS <- lm(formula = PAS_basal ~ factor(Evento)  + Edad + factor(Sexo) + factor(Smoking) + factor(Obesidad) + factor(Diabetes) + factor(HTA) + factor(Pcondition),  data = db_cayafam)
+
+summary(model1_PAS)
+confint(model1_PAS)
+
+
+broom::tidy(model1_PAS)
+broom::glance(model1_PAS)
+broom::augment(model1_PAS)
+
+# Generamos un grafico
+
+PAS_coef <- data.frame(
+  term = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
+  estimate = c(6.77, 2.34, 0.17),
+  conf.low = c(1.04, -8.11, -11.53),
+  conf.high = c(12.5, 12.79, 11.88))
+
+PAS_coef$term <- factor(PAS_coef$term, PAS_coef$term)
+
+library(GGally) 
+Fig.A_model_PAS <- ggcoef(PAS_coef, exponentiate = FALSE, vline_color = "red", vline_linetype = "dashed") + xlab("Beta estimates") + ylab("Exposure") + theme_minimal() + ggtitle("A) Systolic Blood Pressure") + xlim(-15, 15)
+
+
+
 ```
 
+```{r Diastolic Blood Pressure}
+
+#Dejamos como categoria de referencia la variable de baja exposición (Verano).
+db_cayafam$Evento <- relevel(db_cayafam$Evento, ref = "Verano")
+
+#generamos el modelo 
+model1_PAD <- lm(formula = PAD_basal ~ factor(Evento) + Edad + factor(Sexo) + factor(Smoking) + factor(Obesidad) + factor(Diabetes) + factor(HTA) + factor(Pcondition),  data = db_cayafam)
+
+#resumen del modelo 
+summary(model1_PAD)
+confint(model1_PAD)
+
+#ordenamos el modelo en tablas 
+broom::tidy(model1_PAD)
+broom::glance(model1_PAD)
+broom::augment(model1_PAD)
+
+# Generamos un grafico
+
+PAD_coef <- data.frame(
+  term = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
+  estimate = c(3.51, 2.88, 2.64),
+  conf.low = c(.72, -2.18, -3.03),
+  conf.high = c(6.29, 7.94, 8.32))
+
+PAD_coef$term <- factor(PAD_coef$term, PAD_coef$term)
+
+library(GGally) 
+Fig.B_model_PAS <- ggcoef(PAD_coef, exponentiate = FALSE, vline_color = "red", vline_linetype = "dashed") + xlab("Beta estimates") + ylab("Exposure") + theme_minimal() + ggtitle("B) Diastolic Blood Pressure") + xlim(-15, 15)
+
+
+Fig.A_model_PAS + Fig.B_model_PAS + Fig.C_model_SintResp
 
 
 
-
-
-
-```{Diastolic Blood Pressure}
 
 ```
-
-
-
-
-
-
 
 -   ideas de visualización
 
-```{r }
+```{r Correlations}
+install.packages("DataExplorer")
+library(DataExplorer)
 
-# ejemplo grafico Env Factors 
+db_cayafam_cor <- db_cayafam %>% dplyr::select( PM10_max:NO2_max)%>% drop_na() 
+
+
+#exploración normalidad de variales
+DataExplorer::plot_histogram(db_cayafam_cor) #histogram de las variables
+plot_histogram(db_cayafam_env) #altamente dispersas, quizas es necesario hacer una transformación para mejorar 
+
+r_corr_matrix <- cor(db_cayafam_cor, method = "spearman")
+r_corr_matrix
+
+#correlacion con corrplot ----------------------
+library(corrplot)
+corrplot(r_corr_matrix, method ="shade", addCoef.col = FALSE)
+
+#correlacion con ggplot -----------------------
+cormat <- round(cor(db_cayafam_cor),2) #create a correlation
+head(cormat)
+
+library(reshape2)
+melted_cormat <-melt(cormat) #we melt the correlation matrix
+head(melted_cormat)
+
+#creamos con ggplot corplot
+install.packages("viridis")
+library(viridis)
+corplot <- ggplot(data =melted_cormat, mapping = aes(x= Var1 , y =Var2, fill=value)) + geom_tile() + scale_fill_viridis(name = "Spearman\nCorrelation", limit = c(0,1)) + #revisamos el cormat para poner los limites
+ xlab("") + ylab("") + coord_fixed()+ theme_light()
+
+
+
+
+
+```
+
+```{r adicionales}
+
+### ejemplo grafico Env Factors --------
 pm10 <- ggboxplot(db_cayafam1, x = "Evento", y = "PM10_max", 
           color = "Evento", palette = c("#00AFBB", "#E7B800"),
           order = c("Invierno", "Verano"),
@@ -324,6 +415,14 @@ pm10 + pm25 + no2
 
 
 
+### Comparación de modelos ----------
+install.packages("performance")
+library(performance)
+
+(comp <- compare_performance(m1_RS, m2_RS, m3_RS, modelo_prueba))
+
+install.packages("see")
+plot(comp)
 
 ```
 
@@ -331,8 +430,4 @@ pm10 + pm25 + no2
 
 ```
 
-
-
-
-
-```
+\`\`\`
