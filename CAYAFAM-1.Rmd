@@ -267,13 +267,29 @@ We create models to explain the variability of the different outcomes
 # Algunas librerias 
 library(MASS)
 
-model1_EnfResp <- glm(formula = SintResp ~ factor(Evento)  + Edad + factor(Sexo) + factor(Pcondition) + factor(Multimorbility) + factor(Smoking) + factor(Obesidad),  data = db_cayafam, family = binomial) 
+model1_EnfResp <- glm(formula = SintResp ~ factor(Evento) + Edad + factor(Sexo) + factor(Pcondition) + factor(Multimorbility) + factor(Smoking) + factor(Obesidad),  data = db_cayafam, family = binomial) 
 
 summary(model1_EnfResp)
 
 # exponenciamos los resultados para obtener nuestros OR
 exp(cbind(OR = coef(model1_EnfResp), confint(model1_EnfResp)))
 
+# Generamos un grafico de OR
+
+EnfResp_OR <- data.frame(
+  exposure = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
+  estimate = c(4.43, .94, 1.17),
+  conf.low = c(2.07, .25, .72),
+  conf.high = c(10.04, 3.42, 5.15))
+
+#creamos el grafico usando ggplot
+
+Fig.C_model_SintResp <- ggplot2::ggplot(data = EnfResp_OR, mapping =aes( x= estimate, y = exposure)) + 
+  geom_point() + 
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "red")  + 
+  scale_x_log10() + #cambiamos a escala logaritmica
+  xlab("OR adjusted CI95%") + ylab("Exposures")  + theme_minimal() + ggtitle("C) Respiratory Symptoms") + theme(plot.title = element_text (face='bold')) 
 
 
 
@@ -297,18 +313,20 @@ broom::tidy(model1_PAS)
 broom::glance(model1_PAS)
 broom::augment(model1_PAS)
 
-# Generamos un grafico
+# Generamos un grafico de coeficientes beta
 
 PAS_coef <- data.frame(
-  term = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
+  exposure = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
   estimate = c(6.77, 2.34, 0.17),
   conf.low = c(1.04, -8.11, -11.53),
   conf.high = c(12.5, 12.79, 11.88))
 
-PAS_coef$term <- factor(PAS_coef$term, PAS_coef$term)
-
-library(GGally) 
-Fig.A_model_PAS <- ggcoef(PAS_coef, exponentiate = FALSE, vline_color = "red", vline_linetype = "dashed") + xlab("Beta estimates") + ylab("Exposure") + theme_minimal() + ggtitle("A) Systolic Blood Pressure") + xlim(-15, 15)
+#creamos el grafico usando ggplot
+Fig.A_model_PAS <- ggplot2::ggplot(data = PAS_coef, mapping =aes( x= estimate, y = exposure)) + 
+  geom_point() + 
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal() + xlim(-15, 15) + ggtitle("A) Diastolic Blood Pressure") + theme(plot.title = element_text (face='bold')) 
 
 
 
@@ -334,18 +352,22 @@ broom::augment(model1_PAD)
 # Generamos un grafico
 
 PAD_coef <- data.frame(
-  term = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
+  exposure = c("High Exposure", "Physical Condition (Regular)", "Physical Condition  (Optimal)" ),
   estimate = c(3.51, 2.88, 2.64),
   conf.low = c(.72, -2.18, -3.03),
   conf.high = c(6.29, 7.94, 8.32))
 
-PAD_coef$term <- factor(PAD_coef$term, PAD_coef$term)
+#creamos el grafico usando ggplot
+Fig.B_model_PAS  <- ggplot2::ggplot(data = PAD_coef, mapping =aes( x= estimate, y = exposure)) + 
+  geom_point() + 
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal() + xlim(-15, 15) + ggtitle("B) Systolic Blood Pressure") + theme(plot.title = element_text (face='bold')) 
 
-library(GGally) 
-Fig.B_model_PAS <- ggcoef(PAD_coef, exponentiate = FALSE, vline_color = "red", vline_linetype = "dashed") + xlab("Beta estimates") + ylab("Exposure") + theme_minimal() + ggtitle("B) Diastolic Blood Pressure") + xlim(-15, 15)
 
-
-Fig.A_model_PAS + Fig.B_model_PAS + Fig.C_model_SintResp
+Fig.A_model_PAS + 
+Fig.B_model_PAS + 
+Fig.C_model_SintResp
 
 
 
@@ -383,8 +405,7 @@ head(melted_cormat)
 #creamos con ggplot corplot
 install.packages("viridis")
 library(viridis)
-corplot <- ggplot(data =melted_cormat, mapping = aes(x= Var1 , y =Var2, fill=value)) + geom_tile() + scale_fill_viridis(name = "Spearman\nCorrelation", limit = c(0,1)) + #revisamos el cormat para poner los limites
- xlab("") + ylab("") + coord_fixed()+ theme_light()
+corplot <- 0
 
 
 
