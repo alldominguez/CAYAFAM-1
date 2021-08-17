@@ -295,7 +295,6 @@ Fig.C_model_SintResp <- ggplot2::ggplot(data = EnfResp_OR, mapping =aes( x= esti
 
 
 
-
 ```
 
 ```{r Systolic Blood Pressure}
