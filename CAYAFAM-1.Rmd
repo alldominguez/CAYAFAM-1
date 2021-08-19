@@ -153,7 +153,7 @@ gmodels::CrossTable(db_cayafam_winter$HospRespINV_ca2_14, db_cayafam_winter$Sexo
 
 We continue analizing de health characteristics and cardiorespiratory variables.
 
--   Table 2. Health characteristic and cardiorespiratory variables by High and Low Exposure. 
+-   Table 2. Health characteristic and cardiorespiratory variables by High and Low Exposure.
 
 ```{r Table 2. Health Characteristic and Cardiorespiratory OA by Period of Exposure, message=FALSE, warning=FALSE, include=FALSE}
 
@@ -257,44 +257,13 @@ Then we make summary statistics for environmental variables for the both periods
 
 ### Multivariate Analysis
 
+### Sys
+
 We create models to explain the variability of the different outcomes
 
--   Respiratory Symptoms model
+#### Systolic Blood Pressure
 
-    For the respiratory symptoms models we use logistic regression due to the outcome variable is binary, and it's categorize as a presence or absence of respiratory illness.
-
-```{r Respiratory Symptoms}
-# Algunas librerias 
-library(MASS)
-
-model1_EnfResp <- glm(formula = SintResp ~ factor(Evento) + Edad + factor(Sexo) + factor(Pcondition) + factor(Multimorbility) + factor(Smoking) + factor(Obesidad),  data = db_cayafam, family = binomial) 
-
-summary(model1_EnfResp)
-
-# exponenciamos los resultados para obtener nuestros OR
-exp(cbind(OR = coef(model1_EnfResp), confint(model1_EnfResp)))
-
-# Generamos un grafico de OR
-
-EnfResp_OR <- data.frame(
-  exposure = c("High Exposure", "Physical Condition \n (Regular)", "Physical Condition \n (Optimal)" ),
-  estimate = c(4.43, .94, 1.17),
-  conf.low = c(2.07, .25, .72),
-  conf.high = c(10.04, 3.42, 5.15))
-
-#creamos el grafico usando ggplot
-
-Fig.C_model_SintResp <- ggplot2::ggplot(data = EnfResp_OR, mapping =aes( x= estimate, y = exposure)) + 
-  geom_point() + 
-  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
-  geom_vline(xintercept = 1, linetype = "dashed", color = "red")  + 
-  scale_x_log10() + #cambiamos a escala logaritmica
-  xlab("OR adjusted") + ylab("Exposures")  + theme_minimal() + theme(plot.title = element_text (face='bold')) + ggtitle("C) Respiratory Symptoms") 
-
-
-
-
-```
+For the systolic blood pressure models we use linear regression models to measure the association between the period of high exposure to pollutants and the outcome (SBP)
 
 ```{r Systolic Blood Pressure}
 
@@ -325,11 +294,15 @@ Fig.A_model_PAS <- ggplot2::ggplot(data = PAS_coef, mapping =aes( x= estimate, y
   geom_point() + 
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
-  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal() + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP")
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP") 
 
 
 
 ```
+
+#### Diastolic Blood Pressure
+
+For the diastolic blood pressure models we use linear regression to measure the association between the period of high exposure to pollutants and the outcome (DBP)
 
 ```{r Diastolic Blood Pressure}
 
@@ -353,7 +326,7 @@ broom::augment(model1_PAD)
 PAD_coef <- data.frame(
   exposure = c("High Exposure", "Physical Condition \n (Regular)", "Physical Condition \n (Optimal)" ),
   estimate = c(3.51, 2.88, 2.64),
-  conf.low = c(.72, -2.18, -3.03),
+  conf.low = c(0.72, -2.18, -3.03),
   conf.high = c(6.29, 7.94, 8.32))
 
 #creamos el grafico usando ggplot
@@ -361,23 +334,81 @@ Fig.B_model_PAS  <- ggplot2::ggplot(data = PAD_coef, mapping =aes( x= estimate, 
   geom_point() + 
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
-  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal() + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("B) Systolic BP")
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("B) Systolic BP") 
 
 fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
   plot_annotation(tag_levels = "A")
 
-col1 <- (Fig.A_model_PAS / Fig.B_model_PAS) + plot_layout(heights = c(1,1))
-col2 <- (Fig.C_model_SintResp / plot_spacer()) + plot_layout(heights = c(0.5, 0.5))
+col1 <- (Fig.A_model_PAS / Fig.B_model_PAS) + plot_layout(heights = c(1, 1))
+col2 <- (Fig.C_model_SintResp  / plot_spacer()) + plot_layout(heights = c(0.915, 1))
 
 col1|col2
 
-ggsave("fig_1_models.tiff", width = 6, height = 6) 
+ggsave("fig_1_models.tiff", width = 10, height = 10) 
+
 
 
 
 ```
 
--   ideas de visualización
+#### Respiratory Symptoms
+
+For the respiratory symptoms models we use logistic regression due to the outcome variable is binary, and it's categorize as a presence or absence of respiratory illness.
+
+```{r Respiratory Symptoms}
+# Algunas librerias 
+library(MASS)
+
+model1_EnfResp <- glm(formula = SintResp ~ factor(Evento) + Edad + factor(Sexo) + factor(Pcondition) + factor(Multimorbility) + factor(Smoking) + factor(Obesidad),  data = db_cayafam, family = binomial) 
+
+summary(model1_EnfResp)
+
+# exponenciamos los resultados para obtener nuestros OR
+exp(cbind(OR = coef(model1_EnfResp), confint(model1_EnfResp)))
+
+# Generamos un grafico de OR
+
+EnfResp_OR <- data.frame(
+  exposure = c("High Exposure", "Physical Condition \n (Regular)", "Physical Condition \n (Optimal)" ),
+  estimate = c(4.43, .94, 1.17),
+  conf.low = c(2.07, .25, .72),
+  conf.high = c(10.04, 3.42, 5.15))
+
+#creamos el grafico usando ggplot
+
+Fig.C_model_SintResp <- ggplot2::ggplot(data = EnfResp_OR, mapping =aes( x= estimate, y = exposure)) + 
+  geom_point() + 
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "red")  + 
+  scale_x_log10() + #cambiamos a escala logaritmica
+  xlab("OR") + ylab("Exposures")  + theme_minimal(base_size = 12) + theme(plot.title = element_text (face='bold')) + ggtitle("C) Respiratory Symptoms") 
+
+
+
+```
+
+#### Lung Function
+
+In the case of lung function we create
+
+```{r Lung Function}
+
+
+
+model1_lungfunction <- lm() 
+
+
+```
+
+
+
+
+
+
+
+
+
+#### Other visualizations
 
 ```{r Correlations}
 install.packages("DataExplorer")
@@ -408,18 +439,51 @@ head(melted_cormat)
 #creamos con ggplot corplot
 install.packages("viridis")
 library(viridis)
-corplot <- 0
+corplot <- ggplot(data=melted_cormat, aes(x=Var1, y =Var2, fill= value)) + geom_tile() + scale_fill_viridis_c(name = "Spearman \n Correlation") + theme_minimal() 
 
 
+#funciones para obtener solo la diagnal 
+# Get lower triangle of the correlation matrix
+  get_lower_tri<-function(cormat){
+    cormat[upper.tri(cormat)] <- NA
+    return(cormat)
+  }
+  # Get upper triangle of the correlation matrix
+  get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+  }
+  
+# nuevo grafico con ggplot
+  
+upper_tri <- get_upper_tri(cormat)
 
+library(reshape2)
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
 
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_viridis_c(name = "Spearman \n Correlation") +
+  theme_minimal() + geom_text(aes(Var2, Var1, label = value), color = "black", size = 4) +
+theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank(),
+  legend.justification = c(1, 0),
+  legend.position = c(0.6, 0.7),
+  legend.direction = "horizontal")+
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = "top", title.hjust = 0.5))
 
 ```
 
 ```{r adicionales}
 
 ### ejemplo grafico Env Factors --------
-pm10 <- ggboxplot(db_cayafam1, x = "Evento", y = "PM10_max", 
+pm10 <- ggboxplot(db_cayafam, x = "Evento", y = "PM10_max", 
           color = "Evento", palette = c("#00AFBB", "#E7B800"),
           order = c("Invierno", "Verano"),
           ylab = "PM10", xlab = "") 
