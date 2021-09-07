@@ -242,6 +242,22 @@ gmodels::CrossTable(db_cayafam$Cumple_150minweek, db_cayafam$Evento, chisq = TRU
 # Level Physical Fitness (Pcondition)
 gmodels::CrossTable(db_cayafam$Pcondition, db_cayafam$Evento, chisq = TRUE )
 
+
+# Table 1
+
+library(kableExtra)
+
+
+
+
+
+
+
+
+# Table 2
+
+library(kableExtra)
+
 ```
 
 Then we make summary statistics for environmental variables for the both periods of exposure (High and Low)
@@ -250,14 +266,12 @@ Then we make summary statistics for environmental variables for the both periods
 
 ```{r Table 3. Air pollution and environmental variables by Period of Exposure, }
 
-
+# no se hizo porque no tenemos las concentraciones de los contaminantes 
 
 
 ```
 
 ### Multivariate Analysis
-
-### Sys
 
 We create models to explain the variability of the different outcomes
 
@@ -405,8 +419,13 @@ broom::augment(model1_lungfuction)
 ```
 
 
+#### Figures 
+
+We add a forest plot to show the changes in the beta coef estimates for the systolic and diastolic blood pressure, and the changes in the risk for the respiratory symptoms was measured trough odds ratio (OR). 
 
 ```{r Figure 1}
+
+# wee group all the figures for each of the models in one figure ussing the library patchwork. 
 
 fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
   plot_annotation(tag_levels = "A")
