@@ -1,6 +1,6 @@
 ---
 title: ""
-author: "Sandra Cortes, Alan Domínguez"
+author: "Sandra Cortes, Alan Domínguez, María Jose Ojeda"
 date: "7/23/2021"
 output: html_document
 ---
@@ -271,6 +271,7 @@ For the systolic blood pressure models we use linear regression models to measur
 db_cayafam$Evento <- relevel(db_cayafam$Evento, ref = "Verano")
 
 #modelo ajustado
+
 model1_PAS <- lm(formula = PAS_basal ~ factor(Evento)  + Edad + factor(Sexo) + factor(Smoking) + factor(Obesidad) + factor(Diabetes) + factor(HTA) + factor(Pcondition),  data = db_cayafam)
 
 summary(model1_PAS)
@@ -281,8 +282,7 @@ broom::tidy(model1_PAS)
 broom::glance(model1_PAS)
 broom::augment(model1_PAS)
 
-# Generamos un grafico de coeficientes beta
-
+# Generamos un grafico de coeficientes 
 PAS_coef <- data.frame(
   exposure = c("High Exposure", "Physical Condition \n (Regular)", "Physical Condition \n (Optimal)" ),
   estimate = c(6.77, 2.34, 0.17),
@@ -296,6 +296,10 @@ Fig.A_model_PAS <- ggplot2::ggplot(data = PAS_coef, mapping =aes( x= estimate, y
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
   xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP") 
 
+
+ggplot2::ggplot(data = PAS_coef, mapping = aes(x = exposure , y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + coord_flip() +  ylab("Beta estimates CI95%") + xlab("Exposures") + scale_y_continuous(limits  = c(-15, 15))  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP") + theme_minimal()
+  
+library(tidyverse)
 
 
 ```
@@ -329,24 +333,13 @@ PAD_coef <- data.frame(
   conf.low = c(0.72, -2.18, -3.03),
   conf.high = c(6.29, 7.94, 8.32))
 
+
 #creamos el grafico usando ggplot
 Fig.B_model_PAS  <- ggplot2::ggplot(data = PAD_coef, mapping =aes( x= estimate, y = exposure)) + 
   geom_point() + 
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
   xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("B) Systolic BP") 
-
-fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
-  plot_annotation(tag_levels = "A")
-
-col1 <- (Fig.A_model_PAS / Fig.B_model_PAS) + plot_layout(heights = c(1, 1))
-col2 <- (Fig.C_model_SintResp  / plot_spacer()) + plot_layout(heights = c(0.915, 1))
-
-col1|col2
-
-ggsave("fig_1_models.tiff", width = 10, height = 10) 
-
-
 
 
 ```
@@ -370,8 +363,8 @@ exp(cbind(OR = coef(model1_EnfResp), confint(model1_EnfResp)))
 
 EnfResp_OR <- data.frame(
   exposure = c("High Exposure", "Physical Condition \n (Regular)", "Physical Condition \n (Optimal)" ),
-  estimate = c(4.43, .94, 1.17),
-  conf.low = c(2.07, .25, .72),
+  estimate = c(4.43, 0.94, 1.17),
+  conf.low = c(2.07, 0.25, 0.72),
   conf.high = c(10.04, 3.42, 5.15))
 
 #creamos el grafico usando ggplot
@@ -393,15 +386,40 @@ In the case of lung function we create
 
 ```{r Lung Function}
 
+# construimos el modelo para la funcion pulmonar
+model1_lungfuction <- lm(formula = PEF_max ~ factor(Evento) + Edad + factor(Sexo) + factor(Smoking) + factor(Obesidad) + factor(HTA) + factor(Pcondition),  data = db_cayafam)
+
+#resumen del modelo 
+summary(model1_lungfuction)
+confint(model1_lungfuction)
+
+#ordenamos el modelo en tablas 
+broom::tidy(model1_lungfuction)
+broom::glance(model1_lungfuction)
+broom::augment(model1_lungfuction)
 
 
-model1_lungfunction <- lm() 
+
 
 
 ```
 
 
 
+```{r Figure 1}
+
+fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
+  plot_annotation(tag_levels = "A")
+
+col1 <- (Fig.A_model_PAS / Fig.B_model_PAS) + plot_layout(heights = c(1, 1))
+col2 <- (Fig.C_model_SintResp  / plot_spacer()) + plot_layout(heights = c(0.915, 1))
+
+col1|col2
+
+ggsave("fig_1_models.tiff", width = 10, height = 10, dpi = 400) 
+
+
+```
 
 
 
