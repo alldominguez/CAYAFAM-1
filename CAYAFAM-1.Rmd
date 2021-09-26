@@ -26,9 +26,8 @@ library(DataExplorer)
 To charge the database from SPSS we use the function read_sav from the library(haven) for the initial database, and the function read_excel from the library(readxl).
 
 ```{r Loading Database, echo = FALSE}
-db_cayafam1 <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1.xlsx") #base de datos con 54 variables (Descriptiva tabla 1)
-db_cayafam1_vf <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_vf.xlsx") 
-db_cayafam <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_final.xlsx") #con esta la mayoria 
+# Base de datos utilizada
+db_cayafam <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_final.xlsx") 
 ```
 
 We relabel some variables Sex and the period of exposure (Evento) for subset the data.
@@ -91,37 +90,36 @@ db_cayafam_winter %>% group_by(Sexo) %>%
                                  sd_Weight = round(sd(Peso, na.rm = TRUE), digits = 1))
 
 
-t.test(Peso ~ Sexo, data = db_cayafam1_winter) #T.test Weight - Sex
+t.test(Peso ~ Sexo, data = db_cayafam_winter) #T.test Weight - Sex
 
 #Summary Height 
-db_cayafam1_winter %>%  summarise(mean_Height = round(mean(Talla, na.rm = TRUE), digits = 1), 
+db_cayafam_winter %>%  summarise(mean_Height = round(mean(Talla, na.rm = TRUE), digits = 1), 
                                   sd_Height = round(sd(Talla, na.rm = TRUE), digits = 1))
 
 #Summary grouped by sex for Height
-db_cayafam1_winter %>% group_by(Sexo) %>%  
+db_cayafam_winter %>% group_by(Sexo) %>%  
                        summarise(mean_Height = round(mean(Talla , na.rm = TRUE), digits = 1), 
                                  sd_Height = round(sd(Talla, na.rm = TRUE), digits = 1))
 
-t.test(Talla ~ Sexo, data = db_cayafam1_winter) #T.test Height - Sex 
+t.test(Talla ~ Sexo, data = db_cayafam_winter) #T.test Height - Sex 
 
 
 #Summary Obesity 
-gmodels::CrossTable(db_cayafam1_winter$`Obsidad(1/0)`, db_cayafam1_winter$Sexo, chisq = TRUE)
+gmodels::CrossTable(db_cayafam_winter$Obesidad, db_cayafam_winter$Sexo, chisq = TRUE)
 
 
 #Summary Waist 
-db_cayafam1 %>%  summarise(mean_Waist = round(mean(Perimetro_cintura , na.rm = TRUE), digits = 1), 
-                                  sd_Waist = round(sd(Perimetro_cintura, na.rm = TRUE), digits = 1))
+db_cayafam %>%  summarise(mean_Waist = round(mean(CC , na.rm = TRUE), digits = 1), 
+                                  sd_Waist = round(sd(CC, na.rm = TRUE), digits = 1))
 
 #Summary grouped by sex for Waist
-db_cayafam1_winter %>% group_by(Sexo) %>%  
-                       summarise(mean_Waist = round(mean(Perimetro_cintura , na.rm = TRUE), digits = 1), 
-                                 sd_Waist = round(sd(Perimetro_cintura, na.rm = TRUE), digits = 1))
+db_cayafam_winter %>% group_by(Sexo) %>%  
+                       summarise(mean_Waist = round(mean(CC , na.rm = TRUE), digits = 1), 
+                                 sd_Waist = round(sd(CC, na.rm = TRUE), digits = 1))
 
 t.test(Perimetro_cintura ~ Sexo, data = db_cayafam1_winter) #T.test Waist - Sex
 
 #Summary Smoking
-gmodels::CrossTable(db_cayafam1_winter$`Fuma(si/no)`, db_cayafam1_winter$Sexo, chisq = TRUE) #eliminar luego
 gmodels::CrossTable(db_cayafam_winter$Smoking, db_cayafam_winter$Sexo, chisq = TRUE)
 
 #Summary Diabetes
@@ -134,18 +132,16 @@ gmodels::CrossTable(db_cayafam_winter$HTA, db_cayafam_winter$Sexo, chisq = TRUE)
 gmodels::CrossTable(db_cayafam_winter$EnfResp, db_cayafam_winter$Sexo, chisq = TRUE)
 
 #Summary Cardiovascular diseases
-gmodels::CrossTable(db_cayafam$EnfResp, db_cayafam$Sexo, chisq = TRUE)#Periodo de alta exposición (invierno)
-
-gmodels::CrossTable(db_cayafam1_summer$Enf_cardio, db_cayafam1_summer$Sexo, chisq = TRUE) #Periodo de baja exposcición (verano)
+gmodels::CrossTable(db_cayafam_winter$Cardio_categ, db_cayafam_winter$Sexo, chisq = TRUE) # no encontrada
 
 #Summary Multi-morbidity diseases
 gmodels::CrossTable(db_cayafam_winter$Multimorbility, db_cayafam_winter$Sexo, chisq = TRUE)
 
 #Summary Respiratory query last months 
-gmodels::CrossTable(db_cayafam$consultas_respiratorias, db_cayafam$Sexo, chisq = TRUE)
+gmodels::CrossTable(db_cayafam$consultas_respiratorias, db_cayafam$Sexo, chisq = TRUE) # no encontrada
 
 #Summary Cardiovascular query last months 
-gmodels::CrossTable(db_cayafam_winter$consultas_cardiacas, db_cayafam_winter$Sexo, chisq = TRUE)
+gmodels::CrossTable(db_cayafam_winter$consultas_cardiacas, db_cayafam_winter$Sexo, chisq = TRUE) 
 
 #Summary Hosptilization last months  (HospRespINV_ca2_14)
 gmodels::CrossTable(db_cayafam_winter$HospRespINV_ca2_14, db_cayafam_winter$Sexo, chisq = TRUE)
@@ -198,15 +194,15 @@ db_cayafam %>%
   dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),  #Total period 
                               sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
 
-db_cayafam1 %>% filter(Evento == "Invierno") %>%  #High Exposure
+db_cayafam_winter %>%  #High Exposure
   dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),   
                               sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
 
-db_cayafam1 %>% filter(Evento == "Verano") %>%  #Low Exposure
+db_cayafam_summer %>% #Low Exposure
   dplyr::summarize(mean_PEF = round(mean(PEF_max, na.rm = TRUE), digits = 1),   
                               sd_PEF = round(sd(PEF_max, na.rm = TRUE), digits = 1))
 
-t.test(PEF_max ~ Evento, data = db_cayafam1) #T.test PEF_max - Evento
+t.test(PEF_max ~ Evento, data = db_cayafam) #T.test PEF_max - Evento
 
 ### Respiratory symptons ###
 gmodels::CrossTable(db_cayafam$SintResp, db_cayafam$Evento, chisq = TRUE)
@@ -226,33 +222,26 @@ db_cayafam %>%
   dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),  #Total period 
                               sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
 
-db_cayafam %>% filter(Evento == "medicion_invierno_arm_1") %>%  #High Exposure
+db_cayafam_winter %>%  #High Exposure
   dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),   
                               sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
 
-db_cayafam %>% filter(Evento == "medicion_verano_arm_1") %>%  #Low Exposure
+db_cayafam_summer %>% #Low Exposure
   dplyr::summarize(mean = round(mean(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1),   
                               sd = round(sd(TOTAL_MIN_WEEK, na.rm = TRUE), digits = 1))
 
 t.test(TOTAL_MIN_WEEK ~ Evento, data = db_cayafam) #T.test TOTAL_MIN_WEEK - Evento
 
 # >= 150 minutos of moderate intensity (Cumple_150minweek)
-gmodels::CrossTable(db_cayafam$Cumple_150minweek, db_cayafam$Evento, chisq = TRUE )
+gmodels::CrossTable(db_cayafam$Cumple_150minweek, db_cayafam$Evento, chisq = TRUE)
 
 # Level Physical Fitness (Pcondition)
-gmodels::CrossTable(db_cayafam$Pcondition, db_cayafam$Evento, chisq = TRUE )
+gmodels::CrossTable(db_cayafam$Pcondition, db_cayafam$Evento, chisq = TRUE)
 
+# si subimos el codigo, una opcion es realizar las tablas con esta libreria
 
 # Table 1
-
-library(kableExtra)
-
-
-
-
-
-
-
+library(kableExtra) 
 
 # Table 2
 
@@ -266,8 +255,7 @@ Then we make summary statistics for environmental variables for the both periods
 
 ```{r Table 3. Air pollution and environmental variables by Period of Exposure, }
 
-# no se hizo porque no tenemos las concentraciones de los contaminantes 
-
+# no se hizo porque no tenemos las concentraciones de los contaminantes en el periodo (se pueden obtener desde el SINCA si es necesario)
 
 ```
 
@@ -425,7 +413,7 @@ We add a forest plot to show the changes in the beta coef estimates for the syst
 
 ```{r Figure 1}
 
-# wee group all the figures for each of the models in one figure ussing the library patchwork. 
+# we group all the figures for each of the models in one figure ussing the library patchwork. 
 
 fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
   plot_annotation(tag_levels = "A")
@@ -445,7 +433,7 @@ ggsave("fig_1_models.tiff", width = 10, height = 10, dpi = 400)
 
 
 
-#### Other visualizations
+#### Other visualizations / PRUEBAS (presentaciones, seminarios, congresos, webinars)
 
 ```{r Correlations}
 install.packages("DataExplorer")
