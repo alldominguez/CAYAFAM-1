@@ -26,7 +26,7 @@ library(DataExplorer)
 To charge the database from SPSS we use the function read_sav from the library(haven) for the initial database, and the function read_excel from the library(readxl).
 
 ```{r Loading Database, echo = FALSE}
-# Base de datos utilizada
+# Base de datos utilizada (contiene la mayoria de las variables, excepto Cardiovascular diseases y 
 db_cayafam <- readxl::read_excel("~/Desktop/Github_Proyectos/CAYAFAM-1/db_cayafam1_final.xlsx") 
 ```
 
@@ -57,7 +57,7 @@ We made subset from our initial database (db_cayafam1)
 #We do a subset for sex, period of exposure and for some environmental variables 
 db_cayafam_summer <- subset(db_cayafam, Evento == "Verano") #contiene solo a hombres (N = 24) / ambos periodos (N = 48)
 db_cayafam_winter <- subset(db_cayafam, Evento == "Invierno") #contiene solo a mujeres (N = 68) / ambos periodos (N = 136)
-db_cayafam_env <- db_cayafam %>% dplyr::select(Evento, PM10_max:H_p75) #variables ambientales de interes
+db_cayafam_env <- db_cayafam %>% dplyr::select(Evento, PM10_max:H_p75) #variables ambientales de interes / no se utiliza.
 ```
 
 ### Descriptive statistics
