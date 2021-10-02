@@ -397,9 +397,6 @@ broom::glance(model1_lungfuction)
 broom::augment(model1_lungfuction)
 
 
-
-
-
 ```
 
 
