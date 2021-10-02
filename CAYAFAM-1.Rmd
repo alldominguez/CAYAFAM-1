@@ -421,7 +421,6 @@ col1|col2
 
 ggsave("fig_1_models.tiff", width = 10, height = 10, dpi = 400) 
 
-
 ```
 
 
