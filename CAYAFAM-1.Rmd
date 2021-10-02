@@ -117,7 +117,7 @@ db_cayafam_winter %>% group_by(Sexo) %>%
                        summarise(mean_Waist = round(mean(CC , na.rm = TRUE), digits = 1), 
                                  sd_Waist = round(sd(CC, na.rm = TRUE), digits = 1))
 
-t.test(Perimetro_cintura ~ Sexo, data = db_cayafam1_winter) #T.test Waist - Sex
+t.test(CC ~ Sexo, data = db_cayafam_winter) #T.test Waist - Sex
 
 #Summary Smoking
 gmodels::CrossTable(db_cayafam_winter$Smoking, db_cayafam_winter$Sexo, chisq = TRUE)
@@ -279,7 +279,6 @@ model1_PAS <- lm(formula = PAS_basal ~ factor(Evento)  + Edad + factor(Sexo) + f
 summary(model1_PAS)
 confint(model1_PAS)
 
-
 broom::tidy(model1_PAS)
 broom::glance(model1_PAS)
 broom::augment(model1_PAS)
@@ -296,11 +295,8 @@ Fig.A_model_PAS <- ggplot2::ggplot(data = PAS_coef, mapping =aes( x= estimate, y
   geom_point() + 
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
-  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP") 
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Systolic BP") 
 
-
-ggplot2::ggplot(data = PAS_coef, mapping = aes(x = exposure , y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + coord_flip() +  ylab("Beta estimates CI95%") + xlab("Exposures") + scale_y_continuous(limits  = c(-15, 15))  + theme(plot.title = element_text (face='bold')) + ggtitle("A) Diastolic BP") + theme_minimal()
-  
 library(tidyverse)
 
 
@@ -337,11 +333,11 @@ PAD_coef <- data.frame(
 
 
 #creamos el grafico usando ggplot
-Fig.B_model_PAS  <- ggplot2::ggplot(data = PAD_coef, mapping =aes( x= estimate, y = exposure)) + 
+Fig.B_model_PAD  <- ggplot2::ggplot(data = PAD_coef, mapping =aes( x= estimate, y = exposure)) + 
   geom_point() + 
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), shape = 16) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") + 
-  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("B) Systolic BP") 
+  xlab("Beta estimates") + ylab("Exposures")  + theme_minimal(base_size = 12) + xlim(-15, 15)  + theme(plot.title = element_text (face='bold')) + ggtitle("B) Diastolic BP") 
 
 
 ```
