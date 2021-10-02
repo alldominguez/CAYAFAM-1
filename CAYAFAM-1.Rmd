@@ -411,10 +411,10 @@ We add a forest plot to show the changes in the beta coef estimates for the syst
 
 # we group all the figures for each of the models in one figure ussing the library patchwork. 
 
-fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAS) | Fig.C_model_SintResp / plot_spacer() ) + 
+fig1 <- ((Fig.A_model_PAS / Fig.B_model_PAD) | Fig.C_model_SintResp / plot_spacer() ) + 
   plot_annotation(tag_levels = "A")
 
-col1 <- (Fig.A_model_PAS / Fig.B_model_PAS) + plot_layout(heights = c(1, 1))
+col1 <- (Fig.A_model_PAS / Fig.B_model_PAD) + plot_layout(heights = c(1, 1))
 col2 <- (Fig.C_model_SintResp  / plot_spacer()) + plot_layout(heights = c(0.915, 1))
 
 col1|col2
